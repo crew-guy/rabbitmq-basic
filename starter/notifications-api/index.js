@@ -1,4 +1,24 @@
 const express = require("express");
+const amqp = require('amqplib');
+
+const amqpUrl = 'amqp://localhost:5672';
+
+async function connect() {
+  try {
+    const connection = await amqp.connect(amqpUrl);
+    const channel = await connection.createChannel();
+    await channel.assertQueue("order.shipped")
+    channel.consume("order.shipped", (message) => {
+      console.log('RECIEVED MESSAGE FROM QUEUE');
+      console.log(message.content.toString())
+      channel.ack(message);
+    })
+  } catch (error) {
+    console.log(error)    
+  }
+}
+
+connect()
 
 const app = express();
 
